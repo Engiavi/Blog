@@ -1,9 +1,10 @@
 {
-  "name": "medium-clone",
+  "name": "Advance blog",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "start":"vite",
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
