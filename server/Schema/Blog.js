@@ -16,7 +16,7 @@ const blogSchema = mongoose.Schema({
         // required: true,
     },
     des: {
-        type: String,
+        type: [String],
         maxlength: 200,
         // required: true
     },
