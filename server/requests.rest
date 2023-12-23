@@ -7,4 +7,9 @@
 #     "password":"Avi7854"
 # }
 
-GET http://localhost:3000/get-upload-url
+POST http://localhost:3000/search-blogs
+Content-Type: application/json
+
+{
+    "tag":"programming"
+}

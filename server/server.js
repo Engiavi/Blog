@@ -191,6 +191,79 @@ server.post("/google-auth", async (req, res) => {
         })
 })
 
+server.post('/latest-blogs', (req, res) => {
+    let { page } = req.body;
+    let maximumLimit = 5;
+    Blog.find({ draft: false })
+        .populate('author', "personal_info.profile_img personal_info.username personal_info.fullname -_id")
+        .sort({ "publishedAt": -1 })
+        .select("blog_id title des banner activity tags publishedAt -_id")
+        .skip((page - 1) * maximumLimit)
+        .limit(maximumLimit)
+        .then(blogs => {
+            return res.status(200).json({ blogs: blogs })
+        })
+        .catch(err => {
+            return res.status(500).json({ error: err.message })
+        })
+})
+
+server.post("/all-latest-blogs-count",(req,res)=>{
+    Blog.countDocuments({draft:false})
+    .then(count=>{
+        return res.status(200).json({totalDocs:count})
+    })
+    .catch(err=>{
+        console.log(err.message);
+        return res.status(500).json({error:err.message});
+    })
+})
+
+server.get("/trending-blogs", (req, res) => {
+    Blog.find({ draft: false })
+        .populate('author', "personal_info.profile_img personal_info.username personal_info.fullname -_id")
+        .sort({ "activity.total_reads": -1, "activity.total_likes": -1, "publishedAt": -1 })
+        .select("blog_id title activity publishedAt -_id")
+        .limit(5)
+        .then(blogs => {
+            return res.status(200).json({ blogs })
+        })
+        .catch(err => {
+            return res.status(500).json({ error: err.message })
+        })
+})
+
+server.post("/search-blogs", (req, res) => {
+    let { tag,page } = req.body;
+    let findQuery = { tags: tag, draft: false };
+    let maximumLimit = 2;
+    Blog.find(findQuery)
+        .populate('author', "personal_info.profile_img personal_info.username personal_info.fullname -_id")
+        .sort({ "publishedAt": -1 })
+        .select("blog_id title des banner activity tags publishedAt -_id")
+        .skip((page - 1) * maximumLimit)
+        .limit(maximumLimit)
+        .then(blogs => {
+            return res.status(200).json({ blogs: blogs })
+        })
+        .catch(err => {
+            return res.status(500).json({ error: err.message })
+        })
+})
+
+server.post("/search-blogs-count",(req,res)=>{
+    let {tag} =req.body;
+    let findQuery = {tags:tag,draft:false};
+    Blog.countDocuments(findQuery)
+    .then(count=>{
+        return res.status(200).json({totalDocs:count})
+    })
+    .catch(err=>{
+        console.log(err.message);
+        return res.status(500).json({error:err.message});
+    })
+})
+
 server.post('/create-blog', verifyJWT, (req, res) => {
     let authorId = req.user;
     let { title, des, banner, tags, content, draft } = req.body;
@@ -218,32 +291,41 @@ server.post('/create-blog', verifyJWT, (req, res) => {
 
     tags = tags.map(tag => tag.toLowerCase());
     let blog_id = title.replace(/[^a-zA-Z0-9]/g, '').replace(/\s+/g, '-').trim() + nanoid();
-    let blog = new Blog({
-        title,
-        des,
-        banner,
-        content,
-        tags,
-        author: authorId,
-        blog_id,
-        draft: Boolean(draft)
-    });
+    let blog = new Blog(
+        {
+            title,
+            des,
+            banner,
+            content,
+            tags,
+            author: authorId,
+            blog_id,
+            draft: Boolean(draft)
+        }
+    );
     blog.save()
         .then(blog => {
             let incrementVal = draft ? 0 : 1;
-            User.findOneAndUpdate({ _id: authorId }, { $inc: { "account_info.total_posts": incrementVal }, $push: { "blogs": blog._id } })
+            User.findOneAndUpdate(
+                { _id: authorId },
+                {
+                    $inc: { "account_info.total_posts": incrementVal }, $push: { "blogs": blog._id }
+                }
+            )
                 .then(user => {
                     return res.status(200).json({ id: blog.blog_id })
-                })
+                }
+                )
                 .catch(err => {
-                    // return res.status(500).json({"error":"Failed to update total posts number"});
-                    console.log(err)
+                    // console.log(err)
                     return res.status(500).json({ "error": err.message })
-                })
-        }).catch(err => {
+                }
+                )
+        }
+        ).catch(err => {
             return res.status(500).json({ "error": err.message });
-        })
-
+        }
+        )
 })
 server.listen(PORT, () => {
     console.log('Server running ->', PORT);
