@@ -7,9 +7,9 @@
 #     "password":"Avi7854"
 # }
 
-POST http://localhost:3000/search-blogs
+POST http://localhost:3000/get-profile
 Content-Type: application/json
 
 {
-    "tag":"programming"
+    "username":"hackavi796"
 }

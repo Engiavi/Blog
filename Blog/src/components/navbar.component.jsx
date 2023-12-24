@@ -1,6 +1,6 @@
 // import React from "react";
-import { Link, Outlet } from "react-router-dom";
-import logo from "../imgs/logo.png";
+import { Link, Outlet, useNavigate } from "react-router-dom";
+import logo from "../imgs/full-logo.png";
 import { useContext, useState } from "react";
 import { UserContext } from "../App";
 import UserNavgiationPanel from "./user-navigation.component";
@@ -9,6 +9,7 @@ const Navbar = () => {
   const [searchbox, setSearchbox] = useState(false);
   const [userNavPanel,setUserNavPanel] = useState(false);
   const handleusenavpalnel =()=>setUserNavPanel(current => !current);
+  let navigate = useNavigate();
   const {
     userAuth,
     userAuth: { access_token, profile_img },
@@ -20,11 +21,19 @@ const Navbar = () => {
       setUserNavPanel(false);
     },2000)
   }
+
+  const handleSearch =(e)=>{
+    let query = e.target.value;
+    if(e.keyCode == 13 && query.length){
+      navigate(`/search/${query}`);
+    }
+
+  }
   return (
     <>
       <nav className="navbar">
-        <Link to="/" className="flex-none w-10">
-          <img src={logo} alt="logo" className="w-full" />
+        <Link to="/" className="flex-none w-50">
+          <img src={logo} alt="logo" className="h-10  block mx-auto select-none" />
         </Link>
 
         <div
@@ -37,6 +46,7 @@ const Navbar = () => {
             type="text"
             placeholder="search"
             className="w-full md:w-auto bg-grey p-4 pl-6 pr-[12%] md:pd-6 rounded-full placeholder:text-dark-grey caret-red md:pl-12"
+            onKeyDown={handleSearch}
           />
           <i className="fi fi-rr-search absolute right-[10%] md:pointer-events-none md:left-5 top-1/2 -translate-y-1/2 text-xl text-dark-grey"></i>
         </div>
