@@ -49,7 +49,6 @@ const UserProfile = () => {
       })
       .then(({ data: user }) => {
         if(user!=null){
-
             setProfile(user);
         }
         setprofileLoaded(profileId);

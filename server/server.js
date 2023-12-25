@@ -11,6 +11,7 @@ import admin from "firebase-admin";
 import serviceAccountKey from "./adminsdk.json" assert { type: 'json' };
 import { getAuth } from "firebase-admin/auth";
 import aws from "aws-sdk";
+import Notification from './Schema/Notification.js';
 
 const server = express();
 const PORT = 3000;
@@ -208,15 +209,15 @@ server.post('/latest-blogs', (req, res) => {
         })
 })
 
-server.post("/all-latest-blogs-count",(req,res)=>{
-    Blog.countDocuments({draft:false})
-    .then(count=>{
-        return res.status(200).json({totalDocs:count})
-    })
-    .catch(err=>{
-        console.log(err.message);
-        return res.status(500).json({error:err.message});
-    })
+server.post("/all-latest-blogs-count", (req, res) => {
+    Blog.countDocuments({ draft: false })
+        .then(count => {
+            return res.status(200).json({ totalDocs: count })
+        })
+        .catch(err => {
+            console.log(err.message);
+            return res.status(500).json({ error: err.message });
+        })
 })
 
 server.get("/trending-blogs", (req, res) => {
@@ -234,21 +235,23 @@ server.get("/trending-blogs", (req, res) => {
 })
 
 server.post("/search-blogs", (req, res) => {
-    let { tag,query,author, page } = req.body;
-    let findQuery ;
-    if(tag){
-         findQuery = { tags: tag, draft: false };
+    let { tag, query, author, page, limit, eliminate_blog } = req.body;
+    let findQuery;
+    if (tag) {
+        findQuery = { tags: tag, draft: false, blog_id: { $ne: eliminate_blog } };
     }
-    else if(query){
-        findQuery={draft:false, $or: [
-            { title: new RegExp(query, "i") },
-            { tags: new RegExp(query, "i") }  // Assuming tags is an array field
-        ]}
-    }
-    else if(author) {
-        findQuery = { author, draft: false }
+    else if (query) {
+        findQuery = {
+            draft: false, $or: [
+                { title: new RegExp(query, "i") },
+                { tags: new RegExp(query, "i") }
+            ]
         }
-    let maximumLimit = 2;
+    }
+    else if (author) {
+        findQuery = { author, draft: false }
+    }
+    let maximumLimit = limit ? limit : 2;
     Blog.find(findQuery)
         .populate('author', "personal_info.profile_img personal_info.username personal_info.fullname -_id")
         .sort({ "publishedAt": -1 })
@@ -263,58 +266,58 @@ server.post("/search-blogs", (req, res) => {
         })
 })
 
-server.post("/search-blogs-count",(req,res)=>{
-    let {tag,query,author} = req.body;
-    let findQuery ;
-    if(tag){
-         findQuery = { tags: tag, draft: false };
+server.post("/search-blogs-count", (req, res) => {
+    let { tag, query, author } = req.body;
+    let findQuery;
+    if (tag) {
+        findQuery = { tags: tag, draft: false };
     }
-    else if(query){
-        findQuery={draft:false,title:new RegExp(query,"i")}
+    else if (query) {
+        findQuery = { draft: false, title: new RegExp(query, "i") }
     }
-    else if(author) {
+    else if (author) {
         findQuery = { author, draft: false }
-        }
+    }
     Blog.countDocuments(findQuery)
-    .then(count=>{
-        return res.status(200).json({totalDocs:count})
-    })
-    .catch(err=>{
-        console.log(err.message);
-        return res.status(500).json({error:err.message});
-    })
+        .then(count => {
+            return res.status(200).json({ totalDocs: count })
+        })
+        .catch(err => {
+            console.log(err.message);
+            return res.status(500).json({ error: err.message });
+        })
 })
 
-server.post("/search-users",(req,res)=>{
-    let {query} = req.body;
-    User.find({"personal_info.username":new RegExp(query,"i")})
-    .limit(50)
-    .select("personal_info.fullname personal_info.username personal_info.profile_img -_id ")
-    .then(users=>{
-        return res.status(200).json({users})
-    })
-    .catch(err=>{
-        return res.status(500).json({err:err.message})
-    })
+server.post("/search-users", (req, res) => {
+    let { query } = req.body;
+    User.find({ "personal_info.username": new RegExp(query, "i") })
+        .limit(50)
+        .select("personal_info.fullname personal_info.username personal_info.profile_img -_id ")
+        .then(users => {
+            return res.status(200).json({ users })
+        })
+        .catch(err => {
+            return res.status(500).json({ err: err.message })
+        })
 })
 
-server.post("/get-profile",(req,res)=>{
-    let {username} = req.body;
-    User.findOne({"personal_info.username":username})
-    .select("-personal_info.password -google_auth -updatedAt -blogs")
-    .then( user =>{
-        return res.status(200).json(user)
-    })
-    .catch(err=>{
-        console.log(err);
-        return res.status(500).json({error:err.message});
+server.post("/get-profile", (req, res) => {
+    let { username } = req.body;
+    User.findOne({ "personal_info.username": username })
+        .select("-personal_info.password -google_auth -updatedAt -blogs")
+        .then(user => {
+            return res.status(200).json(user)
+        })
+        .catch(err => {
+            console.log(err);
+            return res.status(500).json({ error: err.message });
 
-    })
+        })
 })
 
 server.post('/create-blog', verifyJWT, (req, res) => {
     let authorId = req.user;
-    let { title, des, banner, tags, content, draft } = req.body;
+    let { title, des, banner, tags, content, draft, id } = req.body;
     if (!title.length) {
         return res.status(403).json({ error: "you must provide a title" });
     }
@@ -338,43 +341,126 @@ server.post('/create-blog', verifyJWT, (req, res) => {
     }
 
     tags = tags.map(tag => tag.toLowerCase());
-    let blog_id = title.replace(/[^a-zA-Z0-9]/g, '').replace(/\s+/g, '-').trim() + nanoid();
-    let blog = new Blog(
-        {
-            title,
-            des,
-            banner,
-            content,
-            tags,
-            author: authorId,
-            blog_id,
-            draft: Boolean(draft)
-        }
-    );
-    blog.save()
-        .then(blog => {
-            let incrementVal = draft ? 0 : 1;
-            User.findOneAndUpdate(
-                { _id: authorId },
-                {
-                    $inc: { "account_info.total_posts": incrementVal }, $push: { "blogs": blog._id }
-                }
+
+    let blog_id = id || title.replace(/[^a-zA-Z0-9]/g, '').replace(/\s+/g, '-').trim() + nanoid();
+    if (id) {
+        Blog.findOneAndUpdate({ blog_id }, { title, des, banner, content, tags, draft: draft ? draft : false })
+            .then(() => {
+                return res.status(200).json({ id: blog_id });
+            })
+            .catch(err => {
+                return res.status(500).json({ error: err.message })
+            })
+    }
+    else {
+        let blog = new Blog(
+            {
+                title,
+                des,
+                banner,
+                content,
+                tags,
+                author: authorId,
+                blog_id,
+                draft: Boolean(draft)
+            }
+        );
+        blog.save()
+            .then(blog => {
+                let incrementVal = draft ? 0 : 1;
+                User.findOneAndUpdate(
+                    { _id: authorId },
+                    {
+                        $inc: { "account_info.total_posts": incrementVal }, $push: { "blogs": blog._id }
+                    }
+                )
+                    .then(user => {
+                        return res.status(200).json({ id: blog.blog_id })
+                    }
+                    )
+                    .catch(err => {
+                        // console.log(err)
+                        return res.status(500).json({ "error": err.message })
+                    }
+                    )
+            }
+            ).catch(err => {
+                return res.status(500).json({ "error": err.message });
+            }
             )
-                .then(user => {
-                    return res.status(200).json({ id: blog.blog_id })
-                }
-                )
-                .catch(err => {
-                    // console.log(err)
-                    return res.status(500).json({ "error": err.message })
-                }
-                )
-        }
-        ).catch(err => {
-            return res.status(500).json({ "error": err.message });
-        }
-        )
+
+    }
+
+
 })
+
+server.post("/get-blog", (req, res) => {
+    let { blog_id, draft, mode } = req.body;
+    let incrementVal = mode != 'edit' ? 1 : 0;
+    Blog.findOneAndUpdate({ blog_id }, { $inc: { "activity.total_reads": incrementVal } })
+        .populate("author", "personal_info.fullname personal_info.username personal_info.profile_img")
+        .select("title des content banner activity publishedAt blog_id tags")
+        .then(blog => {
+            User.findOneAndUpdate({ "personal_info.username": blog.author.personal_info.username }, {
+                $inc: { "account_info.total_reads": incrementVal }
+            })
+                .catch(err => {
+                    return res.status(500).json({ error: err.message })
+                })
+            if (blog.draft & !draft) {
+                return res.status(500).json({ error: 'you can not access draft blogs' })
+            }
+            return res.status(200).json({ blog });
+        })
+        .catch(err => {
+            return res.status(500).json({ error: err.message });
+        })
+})
+server.post("/like-blog", verifyJWT, (req, res) => {
+    let user_id = req.user;
+
+    let { _id, islikedByUser } = req.body;
+
+    let incrementVal = !islikedByUser ? 1 : -1;
+
+    Blog.findOneAndUpdate({ _id }, { $inc: { "activity.total_likes": incrementVal } })
+        .then(blog => {
+            if (!islikedByUser) {
+                let like = new Notification({
+                    type: "like",
+                    blog: _id,
+                    notification_for: blog.author,
+                    user: user_id
+                })
+                like.save().then(notification => {
+                    return res.status(200).json({ liked_by_user: true });
+                })
+            }
+            else {
+                Notification.findOneAndDelete({ user: user_id, blog: _id, type: "like" })
+                    .then(data => {
+                        return res.status(200).json({ liked_by_user: false })
+                    })
+                    .catch(err => {
+                        return res.status(500).json({ error: err.message })
+                    })
+
+            }
+        })
+})
+
+server.post("/isliked-user", verifyJWT, (req, res) => {
+    let user_id = req.user;
+    let { _id } = req.body;
+    Notification.exists({ user: user_id, type: "like", blog: _id })
+        .then(result => {
+            return res.status(200).json({ result })
+        })
+        .catch(err => {
+            return res.status(500).json({ error: err.message })
+        })
+})
+
 server.listen(PORT, () => {
     console.log('Server running ->', PORT);
 })

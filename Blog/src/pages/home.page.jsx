@@ -114,7 +114,7 @@ const HomePage = () => {
                   // console.log(blogs.result)
                   return (
                     <AnimationWrapper
-                      transition={{ duration: 1, delay: i * 1 }}
+                      transition={{ duration: 0.8, delay: i * 0.8 }}
                       key={i}
                     >
                       <BlogPostCard
@@ -136,7 +136,7 @@ const HomePage = () => {
               trendingblogs.map((blog, i) => {
                 return (
                   <AnimationWrapper
-                    transition={{ duration: 1, delay: i * 1 }}
+                    transition={{ duration: 0.8, delay: i * 0.8 }}
                     key={i}
                   >
                     <MinimalBlogPost blog={blog} index={i} />
@@ -184,7 +184,7 @@ const HomePage = () => {
                 trendingblogs.map((blog, i) => {
                   return (
                     <AnimationWrapper
-                      transition={{ duration: 1, delay: i * 1 }}
+                      transition={{ duration: 0.8, delay: i * 0.8 }}
                       key={i}
                     >
                       <MinimalBlogPost blog={blog} index={i} />
