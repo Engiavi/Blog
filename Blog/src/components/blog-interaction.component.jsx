@@ -24,7 +24,7 @@ const BlogInteraction = () => {
     },
     setBlog,
     islikedByUser, 
-    setLikedByUser
+    setLikedByUser,setcommentsWrapper,totalParentCommentsLoaded,commentsWrapper,setTotalParentCommentsLoaded
   } = useContext(BlogContext);
 
   useEffect(()=>{
@@ -83,6 +83,7 @@ const BlogInteraction = () => {
           </button>
           <p className="text-x1 text-dark-grey">{total_likes}</p>
           <button
+          onClick={()=>{setcommentsWrapper(val=>!val)}}
             className="w-10 h-10 rounded-full flex items-center
 justify-center bg-grey/80"
           >
