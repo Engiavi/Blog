@@ -1,15 +1,19 @@
-# POST http://localhost:3000/signin
-# Content-Type: application/json
-
-# {
-
-#     "email" : "Avfibnnk@abbc.com",
-#     "password":"Avi7854"
-# }
-
-POST http://localhost:3000/get-profile
+POST http://localhost:3000/signin
 Content-Type: application/json
 
 {
-    "username":"hackavi796"
+
+    "email" : "Avfibnnk@abbc.com",
+    "password":"Avi7854"
 }
+
+# "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1N2QyODg0YmE4ZWYzMmJiNmY5NmFhZSIsImlhdCI6MTcwNDIxODE5OX0.NCDXyZQTjW3dxbAmAeZXupHfNW636TLCWxhn1L2pBQ4"
+
+# POST http://localhost:3000/change-password
+# Content-Type: application/json
+# Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1N2QyODg0YmE4ZWYzMmJiNmY5NmFhZSIsImlhdCI6MTcwNDIxODQ4NH0.Dy1rr2Afard15g31PZDyytqtzni7vHAtfgaIjF0EmEM
+
+# {
+#     "currentPassword":"Avi7854",
+#     "newPassword":"AAvi7854"
+# }

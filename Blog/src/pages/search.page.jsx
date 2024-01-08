@@ -64,7 +64,7 @@ const SearchPage = () => {
         ) : users.length ? (
           users.map((user, i) => {
             return (
-              <AnimationWrapper key={i} transition={{duration:1,delay:i*0.08}}>
+              <AnimationWrapper key={i} transition={{duration:0.8,delay:i*0.08}}>
                 <UserCard  user={user}/>
               </AnimationWrapper>
             );

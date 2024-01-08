@@ -38,8 +38,6 @@ const List = ({ style, items }) => {
     
 }
 
-
-
 const BlogContent = ({ block }) => {
   let { type, data } = block;
 

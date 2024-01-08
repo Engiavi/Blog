@@ -147,7 +147,7 @@ const UserProfile = () => {
                     // console.log(blogs.result)
                     return (
                       <AnimationWrapper
-                        transition={{ duration: 1, delay: i * 1 }}
+                        transition={{ duration: 0.8, delay: i * 1 }}
                         key={i}
                       >
                         <BlogPostCard

@@ -4,7 +4,8 @@ const LoadMoreData = ({state,fetchData}) => {
   return (
    <button 
    onClick={()=>fetchData({page:state.page+1})}
-   className='text-dark-grey p-2 px-3 hover:bg-grey/30 rounded-md flex items-center gap-2'>
+   className='p-2 px-3 bg-black text-white rounded-full flex items-center gap-2 '
+   >
     Load More
    </button>
   )

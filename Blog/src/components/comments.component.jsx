@@ -34,14 +34,33 @@ export const fetchComments = async ({
 };
 const CommentConatainer = () => {
   let {
-    blog: {title,
-      comments:{results:commentsArr}
+    blog,
+    blog: {
+      _id,
+      title,
+      comments:{results:commentsArr},
+      activity:{
+        total_parent_comments
+      }
     },
     commentsWrapper,
+    totalParentCommentsLoaded,
+    setTotalParentCommentsLoaded,
     setcommentsWrapper,
-    comment
+    setBlog
   } = useContext(BlogContext);
   // console.log(blog)
+
+  const handleMoreComments = async()=>{
+    let newComment = await fetchComments(
+      {
+      skip:totalParentCommentsLoaded,
+      blog_id: _id,
+      setparentComcountfun:setTotalParentCommentsLoaded,
+      comment_array : commentsArr
+    })
+    setBlog({...blog, comments:newComment })
+  }
   return (
     <div
       className={
@@ -49,7 +68,7 @@ const CommentConatainer = () => {
         (commentsWrapper ? "top-0 sm:right-0" : "top-[100%] sm:right-[-100%]") +
         " duration-700 max-sm:right-0 sm: top-0 w-[30%] min-w-[350px] h-full z-50 bg-white shadow-2x1 p-8 px-16 overflow-y-auto overflow-x-hidden"
       }
-    >
+    > 
       <div className="relative">
         <h1 className="text-x1 font-medium">Comments</h1>
         <p
@@ -78,6 +97,18 @@ items-center w-12 h-12 rounded-full Ibg-grey"
           </AnimationWrapper>);
         })
          : <NoDataMEssage message="No Comments"/>
+      }
+
+      {
+        total_parent_comments > totalParentCommentsLoaded
+        ?
+        <button
+        onClick={handleMoreComments}
+         className="p-2 px-3 bg-black text-white rounded-full flex items-center gap-2">
+          Load More
+        </button>
+        :
+        ""
       }
     </div>
   );

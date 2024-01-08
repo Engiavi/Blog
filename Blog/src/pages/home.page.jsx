@@ -42,14 +42,14 @@ const HomePage = () => {
     axios
       .post(`${import.meta.env.VITE_SERVER_DOMAIN}/latest-blogs`,{page})
       .then(async({ data }) => {
-        console.log(data.blogs)
+       
         let formateData = await FilterPaginationData({
           state : blogs,
           data: data.blogs,
           page,
           countRoute:"/all-latest-blogs-count"
         })
-        console.log(formateData)
+       
         setBlogs(formateData)
       })
       .catch((err) => {
@@ -111,7 +111,7 @@ const HomePage = () => {
                 <Loader/>
               ) :  blogs.results.length ? (
                 blogs.results.map((blog, i) => {
-                  // console.log(blogs.result)
+            
                   return (
                     <AnimationWrapper
                       transition={{ duration: 0.8, delay: i * 0.8 }}

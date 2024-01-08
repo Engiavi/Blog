@@ -3,19 +3,22 @@ import toast, { Toaster } from "react-hot-toast";
 import { UserContext } from "../App";
 import axios from "axios";
 import { BlogContext } from "../pages/blog.page";
-const CommentField = ({ action }) => {
+
+const CommentField = ({ action, index = undefined, replyingTo,setReplying }) => {
   let {
-    comments,
     activity,
     activity: { total_comments, total_par_comment },
     setBlog,
     blog,
     blog: {
       _id,
-      author: { _id: blog_author },
+      comments,
+      comments: { results: commentArr },
+      author: { _id: blog_author }
     },
     setTotalParentCommentsLoaded,
-    totalParentCommentsLoaded
+    totalParentCommentsLoaded,
+    // totalParentCommentsLoaded
   } = useContext(BlogContext);
 
   const [comment, setComment] = useState("");
@@ -25,8 +28,7 @@ const CommentField = ({ action }) => {
   } = useContext(UserContext);
 
   const handleComment = () => {
-    if (!access_token)
-     return toast.error("Login first to leave a comment");
+    if (!access_token) return toast.error("Login first to leave a comment");
 
     if (!comment.length)
       return toast.error("Write something to leave a comment");
@@ -34,20 +36,33 @@ const CommentField = ({ action }) => {
     axios
       .post(
         `${import.meta.env.VITE_SERVER_DOMAIN}/add-comment`,
-        { _id, blog_author, comment },
+        { _id, blog_author, comment,replying_to:replyingTo },
         {
           headers: {
-            'Authorization': `Bearer ${access_token}`,
-          },
-        })
+            Authorization: `Bearer ${access_token}`,
+          }, 
+        }
+      )
       .then(({ data }) => {
         setComment("");
         data.commented_by = {
-          personal_info: { username, fullname, profile_img }}
+          personal_info: { username, fullname, profile_img },
+        };
         let newcommentArr;
+
+        if(replyingTo ){
+          commentArr[index].children.push(data._id);
+          data.childrenLevel = commentArr[index].childrenLevel +1;
+          data.parentIndex = index;
+          commentArr[index].isReplyLoaded = true;
+          commentArr.splice(index+1,0,data)
+          newcommentArr = commentArr
+          setReplying(false);
+        }else{
         data.childrenLevel = 0;
-        newcommentArr = [data];
-        let parentCommentIncrementval = 1;
+        newcommentArr = [data, ...commentArr];
+        }
+        let parentCommentIncrementval = replyingTo ?0:1;
         setBlog({
           ...blog,
           comments: { ...comments, results: newcommentArr },
@@ -57,15 +72,13 @@ const CommentField = ({ action }) => {
             total_par_comment: parentCommentIncrementval + total_par_comment,
           },
         });
-        setTotalParentCommentsLoaded(val=>val + parentCommentIncrementval)
-        console.log(blog)
+        setTotalParentCommentsLoaded(val => val + parentCommentIncrementval);
+        // console.log(blog);
       })
       .catch((err) => {
         console.log(err);
       });
   };
-
-  
 
   return (
     <>

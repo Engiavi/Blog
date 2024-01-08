@@ -159,9 +159,9 @@ const BlogEditor = () => {
           <button className="btn-dark py-2" onClick={handlePublish}>
             Publish
           </button>
-          <button className="btn-light py-2" onClick={handledraft}>
+          {/* <button className="btn-light py-2" onClick={handledraft}>
             Save Draft
-          </button>
+          </button> */}
         </div>
       </nav>
       <Toaster />

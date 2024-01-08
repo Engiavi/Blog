@@ -16,7 +16,7 @@ const AboutUser = ({ className, bio, social_links, joinedAt }) => {
           </Link> : " ";
         })}
       </div>
-    {/* //   {"fi " + (key / 'website' ? "fi-brands-" + key : "fi-rr-globe" */}
+
     <p className="max-md:hidden text-xl leading-7 text-dark-grey">Joined on {getFullDay(joinedAt)}</p>
     </div>
   );
