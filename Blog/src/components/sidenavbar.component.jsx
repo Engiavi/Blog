@@ -4,7 +4,7 @@ import { UserContext } from "../App";
 
 const SideNavbar = () => {
   let {
-    userAuth: { access_token },
+    userAuth: { access_token,new_notification_available },
   } = useContext(UserContext);
   let page = location.pathname.split('/')[2];
   let [pageState, setPage] = useState(page.replace('-'," "));
@@ -55,21 +55,31 @@ const SideNavbar = () => {
             <h1 className="text-xl text-dark-grey mb-3">Dashboard</h1>
             <hr className="border-grey -ml-6 mb-8 mr-6" />
             <NavLink
-              to="/"
+              to="/dashboard/blogs"
               onClick={(e) => setPage(e.target.innerText)}
               className="sidebar-link"
             >
               <i className="fi fi-rr-document"></i>
               Blogs
             </NavLink>
-            {/* <NavLink
+
+            <NavLink
               to="/dashboard/notification"
               onClick={(e) => setPage(e.target.innerText)}
               className="sidebar-link"
             >
+              <div className="relative" >
+
               <i className="fi fi-rr-bell"></i>
+              {
+                new_notification_available ? 
+                <span className="bg-red w-2 h-2 rounded-full absolute z-10 top-0 right-0"></span> 
+                :
+                ""
+              }
+              </div>
               Notification
-            </NavLink> */}
+            </NavLink>
             <NavLink
               to="/editor"
               onClick={(e) => setPage(e.target.innerText)}

@@ -6,12 +6,21 @@ import { GoogleAuthProvider,getAuth, signInWithPopup } from 'firebase/auth'
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
+<<<<<<< HEAD
   apiKey: "AIzaSyBoHh07cN3KSmAQc3BZiVrKGGDmHj66pNo",
   authDomain: "advance-blog-eac3a.firebaseapp.com",
   projectId: "advance-blog-eac3a",
   storageBucket: "advance-blog-eac3a.appspot.com",
   messagingSenderId: "697875701566",
   appId: "1:697875701566:web:0ca8d9ac4694435be6166f"
+=======
+  apiKey:`${import.meta.env.VITE_APIKEY}`,
+  authDomain: `${import.meta.env.VITE_DOMAIN}`,
+  projectId: `${import.meta.env.VITE_PROJECTID}`,
+  storageBucket: `${import.meta.env.VITE_STORAGEBUCKET}`,
+  messagingSenderId: `${import.meta.env.VITE_MESS_SENDERID}`,
+  appId:`${import.meta.env.VITE_APP_ID}`
+>>>>>>> master
 };
 const app = initializeApp(firebaseConfig);
 

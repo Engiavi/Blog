@@ -21,7 +21,7 @@ const BlogEditor = () => {
     textEditor,
   } = useContext(EditorContext);
   let {
-    userAuth: { access_token },
+    userAuth: { access_token }
   } = useContext(UserContext);
   let navigate = useNavigate();
 
@@ -135,7 +135,7 @@ const BlogEditor = () => {
             toast.dismiss(loadingToast);
             toast.success("Saved 👍");
             setTimeout(() => {
-              navigate("/");
+              navigate("/"); 
             }, 5000);
           })
           .catch(({ response }) => {
@@ -159,9 +159,9 @@ const BlogEditor = () => {
           <button className="btn-dark py-2" onClick={handlePublish}>
             Publish
           </button>
-          {/* <button className="btn-light py-2" onClick={handledraft}>
+          <button className="btn-light py-2" onClick={handledraft}>
             Save Draft
-          </button> */}
+          </button>
         </div>
       </nav>
       <Toaster />

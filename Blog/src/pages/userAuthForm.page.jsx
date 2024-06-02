@@ -9,7 +9,11 @@ import { storeInSession } from "../common/session";
 import { UserContext } from "../App";
 import { Navigate } from "react-router-dom";
 import { authWithGoogle } from "../common/firebase";
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> master
 const UserAuthForm = ({ type }) => {
   // const authForm = useRef();
   let {
