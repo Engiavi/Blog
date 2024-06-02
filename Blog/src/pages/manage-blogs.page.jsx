@@ -42,7 +42,6 @@ const ManageBlog = () => {
           countRoute: "/user-written-blogs-count",
           data_to_send: { draft, query },
         });
-        console.log(formatedData);
         if (draft) {
           setDraft(formatedData);
         } else {

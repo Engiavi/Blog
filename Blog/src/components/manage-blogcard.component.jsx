@@ -78,7 +78,6 @@ return (
 
 const deleteBlog =async (blog,access_token,target)=>{
 let {index,blog_id,setStateFun} = blog;
-// console.log(setStateFun," ",blog_id)
 target.setAttribute("disabled",true);
 await axios.post(`${import.meta.env.VITE_SERVER_DOMAIN}/delete-blog`,{blog_id},{
     headers:{

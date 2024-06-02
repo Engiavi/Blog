@@ -21,7 +21,6 @@ const SearchPage = () => {
         query,
       })
       .then(async ({ data }) => {
-        console.log(data.blogs);
         let formateData = await FilterPaginationData({
           state: blogs,
           data: data.blogs,
@@ -30,7 +29,6 @@ const SearchPage = () => {
           create_new_arr,
           countRoute: "/search-blogs-count",
         });
-        console.log(formateData);
         setBlogs(formateData);
       })
       .catch((err) => {
@@ -87,7 +85,6 @@ const SearchPage = () => {
               <Loader />
             ) : blogs.results.length ? (
               blogs.results.map((blog, i) => {
-                // console.log(blogs.result)
                 return (
                   <AnimationWrapper
                     transition={{

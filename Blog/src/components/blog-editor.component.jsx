@@ -75,7 +75,6 @@ const BlogEditor = () => {
   const handleError = (e) => {
     let img = e.target;
     img.src = defaultBanner;
-    console.log(img);
   };
 
   const handlePublish = () => {

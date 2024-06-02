@@ -4,33 +4,43 @@ import { getDay } from "../common/date";
 import Notificationfield from "./notification-comment-field.component";
 import { UserContext } from "../App";
 import axios from "axios";
-//2.32.00 delete functionality
+ 
 const NotificationCard = ({ data, index, notificationState }) => {
-  let {seen,
-    type,
-    reply,
-    createdAt, 
-    comment,
-    replied_on_comment,
-    user,
-    user: {
-      personal_info: { profile_img, fullname, username },
-    },
-    blog: { _id, blog_id, title },
-    _id: notification_id,
-  } = data;
-
-  let [isReply, setReply] = useState(false);
-
-  let{notifications,notifications:{results,totalDocs},setNotifications} = notificationState;
-
-  let {
-    userAuth: {
-      username: author_username,
-      profile_img: author_profile_img,
-      access_token,
-    },
-  } = useContext(UserContext);
+    if (!data) {
+        return <p>No new notification</p>;
+      }
+    let {
+        seen,
+        type,
+        reply,
+        createdAt, 
+        comment,
+        replied_on_comment,
+        user,
+        user: {
+          personal_info: { profile_img, fullname, username },
+        },
+        blog = {}, // provide a default value for blog
+        _id: notification_id,
+      } = data;
+      
+      let _id, blog_id, title;
+  
+      if (blog) { // check if blog is not null before destructuring
+        ({ _id, blog_id, title } = blog);
+      }
+    
+      let [isReply, setReply] = useState(false);
+    
+      let { notifications, notifications: { results, totalDocs }, setNotifications } = notificationState;
+    
+      let {
+        userAuth: {
+          username: author_username,
+          profile_img: author_profile_img,
+          access_token,
+        },
+      } = useContext(UserContext);
 
   const handleReplyClick = () => {
     setReply((preval) => !preval);

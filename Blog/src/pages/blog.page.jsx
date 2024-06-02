@@ -149,8 +149,6 @@ const BlogPage = () => {
           return '';
         }).join('\n')
       : "No content available for this blog.";
-
-    // console.log('Blog Content:', blogContent);
     return blogContent;
   };
 
@@ -192,11 +190,7 @@ justify-between my-8"
                     </Link>
                   </p>
                   <button className="btn-dark" onClick={toggleSpeech}>
-<<<<<<< HEAD
-                    {speaking ? "Stop listening" : "Listein Blog"}
-=======
                     {speaking ? "Stop listening" : "Listen Blog"}
->>>>>>> master
                   </button>
                 </div>
                 <p className="Dtext-dark-grey opacity-75 max-sm:mt-6 max-sm:ml-12 max-sm:pl-5">

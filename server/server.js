@@ -470,7 +470,6 @@ server.post('/create-blog', verifyJWT, (req, res) => {
                     }
                     )
                     .catch(err => {
-                        // console.log(err)
                         return res.status(500).json({ "error": err.message })
                     }
                     )
@@ -608,13 +607,7 @@ server.post("/add-comment", verifyJWT, async (req, res) => {
                 { new: true }
 
             );
-
-
-            // console.log(replytoComment, "fjn");
-            console.log("fjn");
             if (replytoComment) {
-                console.log("poe");
-                // console.log(replytoComment.commented_by, "pe");
                 notificationObj.notification_for = replytoComment.commented_by;
             }
             if (notification_id) {

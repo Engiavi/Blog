@@ -9,18 +9,13 @@ import { storeInSession } from "../common/session";
 import { UserContext } from "../App";
 import { Navigate } from "react-router-dom";
 import { authWithGoogle } from "../common/firebase";
-<<<<<<< HEAD
-
-=======
  
->>>>>>> master
 const UserAuthForm = ({ type }) => {
   // const authForm = useRef();
   let {
     userAuth: { access_token },
     setUserauth,
   } = useContext(UserContext);
-  // console.log(access_token)
   const userAuthTHroughServer = (serverRoute, formData) => {
     axios
       .post(import.meta.env.VITE_SERVER_DOMAIN + serverRoute, formData)

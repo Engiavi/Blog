@@ -16,7 +16,6 @@ const CommentCard = ({ index, leftval, commentData }) => {
     _id,
     children,
   } = commentData;
-  // console.log(commentData);
   let {
     blog,
     blog: {

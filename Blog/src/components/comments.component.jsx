@@ -49,7 +49,6 @@ const CommentConatainer = () => {
     setcommentsWrapper,
     setBlog
   } = useContext(BlogContext);
-  // console.log(blog)
 
   const handleMoreComments = async()=>{
     let newComment = await fetchComments(

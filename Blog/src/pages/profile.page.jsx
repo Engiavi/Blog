@@ -144,7 +144,6 @@ const UserProfile = () => {
                   <Loader />
                 ) : blogs.results.length ? (
                   blogs.results.map((blog, i) => {
-                    // console.log(blogs.result)
                     return (
                       <AnimationWrapper
                         transition={{ duration: 0.8, delay: i * 1 }}

@@ -73,7 +73,6 @@ const CommentField = ({ action, index = undefined, replyingTo,setReplying }) => 
           },
         });
         setTotalParentCommentsLoaded(val => val + parentCommentIncrementval);
-        // console.log(blog);
       })
       .catch((err) => {
         console.log(err);

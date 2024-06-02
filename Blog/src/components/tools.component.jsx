@@ -8,7 +8,6 @@ import InlineCode from "@editorjs/inline-code";
 import UploadImage from "../common/aws";
 
 const uplodbyfile = (e) => {
-    // console.log(e)
   return UploadImage(e).then(url => {
     if (url) {
       return {
