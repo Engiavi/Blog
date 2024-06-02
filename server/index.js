@@ -16,6 +16,8 @@ import Comment from './Schema/Comment.js';
 const server = express();
 const PORT = 3000;
 
+server.use(cors());
+
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccountKey)
 });
@@ -48,7 +50,7 @@ const formatDatatoSend = (user) => {
 }
 //middleware 
 server.use(express.json());
-server.use(cors());
+
 const generateusername = async (email) => {
     let username = email.split('@')[0];//[avi,gmail.cp]
     let isUsernameNotUnique = await User.exists({ "personal_info.username": username }).then((result) => result)
@@ -677,7 +679,7 @@ server.post("/get-replies", (req, res) => {
             return res.status(500).json({ error: err })
         })
 })
-  
+
 const deleteComments = (_id) => {
     Comment.findOneAndDelete({ _id })
         .then(comment => {
@@ -689,21 +691,21 @@ const deleteComments = (_id) => {
             Notification.findOneAndDelete({ comment: _id }).then(notification => console.log('comment notification deleted'))
 
             // Notification.findOneAndDelete({ reply:_id }).then(notification => console.log('reply notification deleted'))
-            Notification.findOneAndUpdate({ reply:_id },{$unset:{reply:1}}).then(notification => console.log('reply notification deleted'))
+            Notification.findOneAndUpdate({ reply: _id }, { $unset: { reply: 1 } }).then(notification => console.log('reply notification deleted'))
 
             Blog.findOneAndUpdate({ _id: comment.blog_id }, { $pull: { comments: _id }, $inc: { "activity.total_comments": -1 }, "activity.total_parent_comments": comment.parent ? 0 : -1 })
-                .then(blog => { 
+                .then(blog => {
                     if (comment.children.length) {
                         comment.children.map(replies => {
                             deleteComments(replies)
-                        }) 
+                        })
                     }
                 })
         })
-        .catch(err => {  
+        .catch(err => {
             return console.log(err.message)
         })
-} 
+}
 server.post("/delete-comment", verifyJWT, (req, res) => {
     let user_id = req.user;
     let { _id } = req.body;
@@ -716,7 +718,7 @@ server.post("/delete-comment", verifyJWT, (req, res) => {
             else {
                 return res.status(403).json({ error: "You can not delete this comment" })
             }
-        }) 
+        })
 })
 server.get("/new-notification", verifyJWT, (req, res) => {
     let user_id = req.user;
@@ -757,10 +759,10 @@ server.post("/notifications", verifyJWT, (req, res) => {
         .sort({ createdAt: -1 })
         .select("createdAt type seen reply")
         .then(notifi => {
-            Notification.updateMany(findQuery,{seen:true})
-            .skip(skipDocs)
-            .limit(maxLimit)
-            .then(()=>console.log('notification seen'));
+            Notification.updateMany(findQuery, { seen: true })
+                .skip(skipDocs)
+                .limit(maxLimit)
+                .then(() => console.log('notification seen'));
             return res.status(200).json({ notifications: notifi });
         })
         .catch(err => {
@@ -787,65 +789,65 @@ server.post("/all-notifications-count", verifyJWT, (req, res) => {
         .catch(err => {
             return res.status(500).json({ error: err.message })
         })
-}) 
+})
 
-server.post("/user-written-blogs",verifyJWT,(req,res)=>{
+server.post("/user-written-blogs", verifyJWT, (req, res) => {
     let user_id = req.user;
-    let {page,draft,query,deletedDocCount}= req.body;
+    let { page, draft, query, deletedDocCount } = req.body;
 
     let maxLimit = 5;
-    let skipDocs = (page-1) * maxLimit;
+    let skipDocs = (page - 1) * maxLimit;
 
-    if(deletedDocCount){
+    if (deletedDocCount) {
         skipDocs -= deletedDocCount;
 
     }
 
-    Blog.find({author:user_id,draft,title:new RegExp(query,'i')})
-    .skip(skipDocs)
-    .limit(maxLimit)
-    .sort({publishedAt:-1})
-    .select("title banner publishedAt blog_id activity des draft -_id")
-    .then(blogs =>{
-        return res.status(200).json({blogs})
-    })
-    .catch(err=>{
-        return res.status(500).json({error: err.message});
-    })
+    Blog.find({ author: user_id, draft, title: new RegExp(query, 'i') })
+        .skip(skipDocs)
+        .limit(maxLimit)
+        .sort({ publishedAt: -1 })
+        .select("title banner publishedAt blog_id activity des draft -_id")
+        .then(blogs => {
+            return res.status(200).json({ blogs })
+        })
+        .catch(err => {
+            return res.status(500).json({ error: err.message });
+        })
 })
 
 
-server.post("/user-written-blogs-count",verifyJWT,(req,res)=>{
+server.post("/user-written-blogs-count", verifyJWT, (req, res) => {
     let user_id = req.user;
-    let {draft,query} = req.body;
-    Blog.countDocuments({author:user_id,draft,title:new RegExp(query,'i')})
-    .then(
-        count=>{
-            return res.status(200).json({totalDocs:count})
-        }
-    ) 
-    .catch(err=>{
-        console.log(err.message);
-        return res.status(500).json({error:err.message})
-    })
+    let { draft, query } = req.body;
+    Blog.countDocuments({ author: user_id, draft, title: new RegExp(query, 'i') })
+        .then(
+            count => {
+                return res.status(200).json({ totalDocs: count })
+            }
+        )
+        .catch(err => {
+            console.log(err.message);
+            return res.status(500).json({ error: err.message })
+        })
 })
- 
-server.post("/delete-blog",verifyJWT, (req,res)=>{
-    let user_id = req.user;
-    let {blog_id} = req.body;
-    Blog.findOneAndDelete({blog_id}).then(async blog=>{
-       
-        await Notification.deleteMany({blog:blog_id}).then(data=> console.log("notification deleted"));
-        await Comment.deleteMany({blog_id:blog_id}).then(data=> console.log("comment deleted"));
-       await  User.findOneAndUpdate({_id:user_id},{$pull:{blog:blog._id},$inc:{"account_info.total_posts":-1}}).then(user=>console.log('Blog deleted'));
 
-        return res.status(200).json({status:'done'});
-    }) 
-    .catch(err=>{ 
-        return res.status(500).json({error:err.message});
+server.post("/delete-blog", verifyJWT, (req, res) => {
+    let user_id = req.user;
+    let { blog_id } = req.body;
+    Blog.findOneAndDelete({ blog_id }).then(async blog => {
+
+        await Notification.deleteMany({ blog: blog_id }).then(data => console.log("notification deleted"));
+        await Comment.deleteMany({ blog_id: blog_id }).then(data => console.log("comment deleted"));
+        await User.findOneAndUpdate({ _id: user_id }, { $pull: { blog: blog._id }, $inc: { "account_info.total_posts": -1 } }).then(user => console.log('Blog deleted'));
+
+        return res.status(200).json({ status: 'done' });
     })
+        .catch(err => {
+            return res.status(500).json({ error: err.message });
+        })
 })
 server.listen(PORT, () => {
     console.log('Server running ->', PORT);
 })
- 
+
