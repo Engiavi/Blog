@@ -30,7 +30,6 @@ export const fetchComments = async ({
       }
     });
     return res;
-
 };
 const CommentConatainer = () => {
   let {
