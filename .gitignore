@@ -4,3 +4,9 @@ Blog/node_modules
 requests.rest
 adminsdk.json
 .vercel
+node_modules
+.env
+requests.rest
+.vercel
+adminsdk.json
+.java
