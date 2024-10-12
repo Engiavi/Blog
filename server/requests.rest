@@ -1,0 +1,10 @@
+# POST http://localhost:3000/signin
+# Content-Type: application/json
+
+# {
+
+#     "email" : "Avfibnnk@abbc.com",
+#     "password":"Avi7854"
+# }
+
+GET http://localhost:3000/get-upload-url

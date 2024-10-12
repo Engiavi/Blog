@@ -4,13 +4,15 @@ import 'dotenv/config';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from './Schema/User.js';
+import Blog from './Schema/Blog.js';
 import { nanoid } from 'nanoid';
 import cors from 'cors';
 import admin from "firebase-admin";
 import serviceAccountKey from "./adminsdk.json" assert { type: 'json' };
 import { getAuth } from "firebase-admin/auth";
+import aws from "aws-sdk";
 
-const server = express(); 
+const server = express();
 const PORT = 3000;
 
 admin.initializeApp({
@@ -20,6 +22,20 @@ admin.initializeApp({
 let emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/; // regex for email
 let passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/; // regex for password
 
+const verifyJWT = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(" ")[1];
+    if (token == null) {
+        return res.status(401).json({ error: "No access token" });
+    }
+    jwt.verify(token, process.env.secret_key, (err, user) => {
+        if (err) {
+            return res.status(403).json({ error: "Access token is invalid" });
+        }
+        req.user = user.id;
+        next();
+    })
+}
 const formatDatatoSend = (user) => {
     const access_token = jwt.sign({ id: user._id }, process.env.secret_key);
     return {
@@ -45,7 +61,33 @@ async function main() {
     console.log("Database connected");
 }
 
+const s3 = new aws.S3({
+    region: 'ap-south-1',
+    accessKeyId: process.env.Aws_Access_key,
+    secretAccessKey: process.env.Aws_secret_key
+})
+
+const generateUploadURL = async () => {
+    const date = new Date();
+    const imageName = `${nanoid()}-${date.getTime()}.jpeg`;
+    return await s3.getSignedUrlPromise('putObject', {
+        Bucket: "advance-blog-website",
+        Key: imageName,
+        Expires: 1000,
+        ContentType: "image/jpeg"
+    })
+}
 //server
+
+//upload image url
+server.get("/get-upload-url", (req, res) => {
+    generateUploadURL().then(url => res.status(200).json({ uploadUrl: url }))
+        .catch(err => {
+            console.log(err.message);
+            return res.status(500).json({ error: err.message })
+        })
+})
+
 server.post('/signup', (req, res) => {
     let { fullname, email, password } = req.body;
     //validating
@@ -82,38 +124,38 @@ server.post('/signin', (req, res) => {
                 return res.status(403).json({ "error": "Email not found" });
 
             }
-            if(!user.google_auth){
-            bcrypt.compare(password, user.personal_info.password, (err, result) => {
-                if (err)
-                    return res.status(403).json({ "error": "Error occured while login" });
-                if (!result)
-                    return res.status(403).json({ "error": "Incorrect password" });
-                else
-                    return res.status(200).json(formatDatatoSend(user))
+            if (!user.google_auth) {
+                bcrypt.compare(password, user.personal_info.password, (err, result) => {
+                    if (err)
+                        return res.status(403).json({ "error": "Error occured while login" });
+                    if (!result)
+                        return res.status(403).json({ "error": "Incorrect password" });
+                    else
+                        return res.status(200).json(formatDatatoSend(user))
 
-            })
-        }
-        else{
-            return res.status(403).json({"error":"Account was created with google. Try to login with google"})
-        }
+                })
+            }
+            else {
+                return res.status(403).json({ "error": "Account was created with google. Try to login with google" })
+            }
         })
         .catch(err => {
             console.log(err);
             return res.status(500).json({ "error": err.message });
         })
-}) 
+})
 
 server.post("/google-auth", async (req, res) => {
     let { access_token } = req.body;
     getAuth()
         .verifyIdToken(access_token)
-        .then(async (decodeUser) => {  
+        .then(async (decodeUser) => {
 
             let { email, name, picture } = decodeUser;
 
             picture = picture.replace("s96-c", "s384-c");
             let user = await User.findOne({ "personal_info.email": email }).select("personal_info.fullname personal_info.username personal_info.profile_img google_auth").then((u) => {
-                return u || null 
+                return u || null
             })
                 .catch((err) => {
                     return res.status(500).json({ "error": err.message });
@@ -149,6 +191,60 @@ server.post("/google-auth", async (req, res) => {
         })
 })
 
+server.post('/create-blog', verifyJWT, (req, res) => {
+    let authorId = req.user;
+    let { title, des, banner, tags, content, draft } = req.body;
+    if (!title.length) {
+        return res.status(403).json({ error: "you must provide a title" });
+    }
+    if (!draft) {
+        if (!des.length || des.length > 200) {
+            return res.status(403).json({ error: "you must provide a description in 200 letters to publish the blog" });
+        }
+        if (!banner.length) {
+            return res.status(403).json({ error: "you must provide a banner to publish the blog" });
+        }
+
+        if (!content.blocks.length) {
+            return res.status(403).json({ error: "There must be some blog content to publish it" });
+        }
+        if (!tags.length || tags.length > 10) {
+            return res.status(403).json({ error: "you must provide only 10 tag to publish the blog" });
+        }
+    }
+    if (!title.length) {
+        return res.status(403).json({ error: "you must provide a title to publish the blog" });
+    }
+
+    tags = tags.map(tag => tag.toLowerCase());
+    let blog_id = title.replace(/[^a-zA-Z0-9]/g, '').replace(/\s+/g, '-').trim() + nanoid();
+    let blog = new Blog({
+        title,
+        des,
+        banner,
+        content,
+        tags,
+        author: authorId,
+        blog_id,
+        draft: Boolean(draft)
+    });
+    blog.save()
+        .then(blog => {
+            let incrementVal = draft ? 0 : 1;
+            User.findOneAndUpdate({ _id: authorId }, { $inc: { "account_info.total_posts": incrementVal }, $push: { "blogs": blog._id } })
+                .then(user => {
+                    return res.status(200).json({ id: blog.blog_id })
+                })
+                .catch(err => {
+                    // return res.status(500).json({"error":"Failed to update total posts number"});
+                    console.log(err)
+                    return res.status(500).json({ "error": err.message })
+                })
+        }).catch(err => {
+            return res.status(500).json({ "error": err.message });
+        })
+
+})
 server.listen(PORT, () => {
     console.log('Server running ->', PORT);
 })
